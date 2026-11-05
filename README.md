@@ -1,29 +1,31 @@
-# Générateur de scénarios de déduction temporelle (imprimable A4)
+# Kronologic generator (imprimable A4)
 
 Application **100 % front-end** qui génère, à partir d'un plan de lieux et d'une graine aléatoire,
 tout le matériel nécessaire pour jouer une partie d'un jeu de déduction « qui était où, et quand ? »,
 puis le met en page pour une impression sur feuilles **A4**.
-
-> ⚠️ Propriété intellectuelle : le projet reprend un **genre / des mécaniques** de jeu de déduction
-> temporelle, mais **tout le contenu doit être original** (nom du jeu, plans, lieux, personnages,
-> illustrations, charte graphique, textes des règles). On ne reproduit ni le nom, ni les cartes, ni
-> le plateau, ni les visuels d'un jeu existant. Voir `docs/QUESTIONS.md` §0.
 
 ## Matériel généré
 
 | Document | Contenu |
 |---|---|
 | **Plan** | Le plateau seul (lieux + connexions). Une première carte, d'autres ensuite. |
-| **Cartes d'étapes** | Une carte par (lieu × étape) : informations publiques et privées à révéler. |
+| **Cartes de salle** | Une par salle : nb de présents par étape (public) ; par personnage, nb de passages + une étape exacte (privé). |
 | **Solution** | Déplacements complets de chaque personnage + réponse à l'énigme. |
-| **Feuilles de notes** | Grilles joueurs : 6 étapes par feuille par défaut, N feuilles si plus d'étapes. |
-| **Caches** | Gabarits à découper pour ne lire qu'une zone d'une carte d'étape. |
+| **Feuilles de notes** | 6 mini-plans (1 par étape) + liste des personnages × salles ; feuille supplémentaire au-delà de 6 étapes. |
+| **Caches** | À découper : 1 cache par personnage, 1 cache par étape, posés sur une carte de salle. |
 
 ## Documentation
 
-- [`docs/QUESTIONS.md`](docs/QUESTIONS.md) — questions à trancher avant de coder.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — choix arrêtés et points ouverts.
 - [`docs/PLAN.md`](docs/PLAN.md) — plan d'action proposé (jalons, architecture, livrables).
 
-## État
+## Démarrer
 
-Dépôt initialisé, phase de cadrage. Aucune stack n'est figée tant que les questions ne sont pas tranchées.
+```bash
+npm install
+npm run dev      # http://localhost:5173/?seed=DEMO
+npm test
+npm run build
+```
+
+Une partie est entièrement définie par l'URL : `?map=villa&seed=DEMO&steps=6`.
