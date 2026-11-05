@@ -12,6 +12,11 @@ describe('scénario Tête-à-tête mortel', () => {
     }
   });
 
+  it('la victime est toujours le détective', () => {
+    const { murder } = generateMurderStory(maps[0]!, { seed: 'x', steps: 6, characters: defaultCharacters });
+    expect(defaultCharacters.find((c) => c.id === murder.victim)!.role).toBe('detective');
+  });
+
   it('est reproductible', () => {
     const cfg = { seed: 'manoir#7', steps: 6, characters: defaultCharacters };
     expect(generateMurderStory(maps[0]!, cfg)).toEqual(generateMurderStory(maps[0]!, cfg));

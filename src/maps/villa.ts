@@ -32,7 +32,7 @@ export const defaultCharacters: Character[] = [
   { id: 'A', name: 'Archiviste', color: '#c0392b', symbol: 'A' },
   { id: 'B', name: 'Botaniste', color: '#27ae60', symbol: 'B' },
   { id: 'C', name: 'Cuisinier', color: '#2980b9', symbol: 'C' },
-  { id: 'D', name: 'Danseuse', color: '#8e44ad', symbol: 'D' },
+  { id: 'D', name: 'Détective', color: '#8e44ad', symbol: 'D', role: 'detective' },
   { id: 'E', name: 'Écrivain', color: '#d35400', symbol: 'E' },
   { id: 'F', name: 'Fauconnier', color: '#7f8c8d', symbol: 'F' },
 ];

@@ -200,18 +200,28 @@ export function maskSheets(m: Material): string[] {
 // ---------------------------------------------------------------------------
 export function noteSheets(m: Material, perSheet = 6): string[] {
   const t = m.theme;
+  const W = PAGE_H; // paysage : 277 × 190 mm
+  const H = PAGE_W;
   const stepGroups = chunk(Array.from({ length: m.steps }, (_, i) => i), perSheet);
   const headFill = t.id === 'minimal' ? 'none' : t.decorated ? t.highlightFill : '#eee';
+  const aspect = m.map.width / m.map.height;
+  const top = 11;
+  const gap = 4;
+  // Trois plans empilés à gauche (étapes 1-3), trois à droite (4-6), tableau au centre.
+  const slotH = (H - top - 4 - 2 * gap) / 3;
+  const mapH = slotH - 5;
+  const mapW = Math.min(mapH * aspect, 80);
+  const tableX = 5 + mapW + 8;
+  const tableW = W - 2 * tableX;
+
   return stepGroups.map((group, sheetIndex) => {
     const p: string[] = [];
-    p.push(title(t, 5, 6, `Feuille d'enquête — ${m.map.name}`, 4.5, 'start'));
-    p.push(text(PAGE_W - 5, 6, 'Joueur : ____________   Partie n° ______', { size: 3.2, anchor: 'end' }));
+    p.push(title(t, 5, 5.5, `Feuille d'enquête — ${m.map.name}`, 4.5, 'start'));
+    p.push(text(W - 5, 5.5, 'Joueur : ____________   Partie n° ______', { size: 3.2, anchor: 'end' }));
 
-    const mapW = (PAGE_W - 10 - 2 * 4) / 3;
-    const mapH = mapW * (m.map.height / m.map.width) + 6;
     const drawStep = (step: number, x: number, y: number) => {
-      p.push(title(t, x, y + 2.5, `Étape ${step + 1}`, 3.4, 'start'));
-      p.push(drawMap(m.map, x, y + 5, mapW, mapOpts(t, {
+      p.push(title(t, x, y + 2, `Étape ${step + 1}`, 3.4, 'start'));
+      p.push(drawMap(m.map, x, y + 4.5, mapW, mapOpts(t, {
         labelSize: 2.4,
         stroke: 0.35,
         roomExtra: (box) => {
@@ -231,35 +241,34 @@ export function noteSheets(m: Material, perSheet = 6): string[] {
         },
       })).svg);
     };
-    group.slice(0, 3).forEach((s, i) => drawStep(s, 5 + i * (mapW + 4), 10));
+    group.forEach((s, i) => {
+      const left = i < 3;
+      drawStep(s, left ? 5 : W - 5 - mapW, top + (i % 3) * (slotH + gap));
+    });
 
-    // Tableau central : personnages × salles (nombre de passages).
-    const tableTop = 10 + mapH + 6;
-    const nameW = 32;
-    const cw = (PAGE_W - 10 - nameW) / m.map.rooms.length;
-    const rh = 8;
-    p.push(title(t, 5, tableTop - 2.5, 'Nombre de passages par salle', 3, 'start'));
+    // Tableau central : personnages × salles (nombre de passages). Noms de salles à la verticale.
+    const nameW = 30;
+    const cw = (tableW - nameW) / m.map.rooms.length;
+    const longest = Math.max(...m.map.rooms.map((r) => r.name.length));
+    const headSize = 3.2;
+    const hh = Math.max(14, longest * headSize * 0.6 + 4);
+    const rh = Math.min(16, (H - top - 16 - hh) / m.characters.length);
+    const tableTop = top + (H - top - 4 - hh - rh * m.characters.length) / 2 + 3;
+    p.push(title(t, tableX + tableW / 2, tableTop - 4, 'Nombre de passages par salle', 3.4));
     m.map.rooms.forEach((r, j) => {
-      p.push(rect(5 + nameW + j * cw, tableTop, cw, rh, `fill="${headFill}" ${line}`));
-      p.push(text(5 + nameW + j * cw + cw / 2, tableTop + rh / 2, r.name, { size: 2.6 }));
+      const cx = tableX + nameW + j * cw + cw / 2;
+      p.push(rect(tableX + nameW + j * cw, tableTop, cw, hh, `fill="${headFill}" ${line}`));
+      p.push(`<g transform="translate(${n(cx)} ${n(tableTop + hh - 2)}) rotate(-90)">${text(0, 0, r.name, { size: headSize, anchor: 'start', weight: 'bold' })}</g>`);
     });
     m.characters.forEach((c, i) => {
-      const y = tableTop + rh * (i + 1);
-      p.push(rect(5, y, nameW, rh, `fill="none" ${line}`));
-      p.push(characterBadge(t, c, 9, y + rh / 2, 2.5) + text(13, y + rh / 2, c.name, { size: 3, anchor: 'start' }));
-      m.map.rooms.forEach((_, j) => p.push(rect(5 + nameW + j * cw, y, cw, rh, `fill="none" ${line}`)));
+      const y = tableTop + hh + rh * i;
+      p.push(rect(tableX, y, nameW, rh, `fill="none" ${line}`));
+      p.push(characterBadge(t, c, tableX + 4.5, y + rh / 2, 2.6) + text(tableX + 9, y + rh / 2, c.name, { size: 3, anchor: 'start' }));
+      m.map.rooms.forEach((_, j) => p.push(rect(tableX + nameW + j * cw, y, cw, rh, `fill="none" ${line}`)));
     });
 
-    const bottomTop = tableTop + rh * (m.characters.length + 1) + 6;
-    const bottom = group.slice(3);
-    bottom.forEach((s, i) => drawStep(s, 5 + i * (mapW + 4), bottomTop));
-
-    const notesTop = bottomTop + (bottom.length ? mapH + 4 : 0);
-    p.push(title(t, 5, notesTop + 2, 'Notes', 3, 'start'));
-    for (let y = notesTop + 9; y < PAGE_H - 5; y += 7) p.push(`<line x1="5" y1="${n(y)}" x2="${PAGE_W - 5}" y2="${n(y)}" stroke="#ccc" stroke-width="0.25"/>`);
-
     const suffix = stepGroups.length > 1 ? ` · feuille ${sheetIndex + 1}/${stepGroups.length}` : '';
-    return sheet(t, p.join(''), `${m.map.name} · feuille de notes${suffix}`);
+    return sheet(t, p.join(''), `${m.map.name} · feuille de notes${suffix}`, 'landscape');
   });
 }
 
@@ -276,9 +285,9 @@ export function questSheet(m: Material, story: Story, murder: Murder, label: str
 
   // --- Haut : mise en place (public) ---------------------------------------
   p.push(title(t, 5, 6, `${label} — mise en place`, 4.5, 'start'));
-  p.push(text(5, 13, `Victime : ${victim.name} (${victim.symbol}), empoisonné·e au cours de la soirée.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
-  p.push(text(5, 18.5, 'Le coupable était seul avec la victime. Trouvez QUI, OÙ et à quelle ÉTAPE.', { size: 3, anchor: 'start' }));
-  p.push(text(5, 24, "Position des personnages à l'étape 1 :", { size: 3, anchor: 'start' }));
+  p.push(text(5, 13, `Victime : le ${victim.name} (${victim.symbol}), empoisonné au cours de la soirée.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
+  p.push(text(5, 18.5, "Le coupable était seul avec lui. Le poison agit lentement : il continue de se déplacer jusqu'à la fin.", { size: 3, anchor: 'start' }));
+  p.push(text(5, 24, "Trouvez QUI, OÙ et à quelle ÉTAPE. Position des personnages à l'étape 1 :", { size: 3, anchor: 'start' }));
   const mapW = Math.min(PAGE_W - 60, (half - 34) * (m.map.width / m.map.height));
   p.push(drawMap(m.map, (PAGE_W - mapW) / 2, 28, mapW, mapOpts(t, {
     labelSize: 3.2,
@@ -327,7 +336,7 @@ export function questSheet(m: Material, story: Story, murder: Murder, label: str
   const culprit = byId(murder.culprit);
   const answerY = gridTop + rh * (m.map.rooms.length + 1) + 7;
   p.push(rect(5, answerY - 4, 6, 6, `fill="${murderFill}" stroke="#b22" stroke-width="0.6"`));
-  p.push(text(14, answerY - 1, `Meurtre : ${culprit.name} (${culprit.symbol}) a empoisonné ${victim.name}`
+  p.push(text(14, answerY - 1, `Meurtre : ${culprit.name} (${culprit.symbol}) a empoisonné le ${victim.name}`
     + ` — ${roomName(m.map, murder.room)}, étape ${murder.step + 1}.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
   return sheet(t, p.join(''), `${m.map.name} · ${label}`);
 }

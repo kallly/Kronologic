@@ -28,6 +28,8 @@ export interface Character {
   color: string;
   /** Symbole / initiale, pour rester lisible en noir & blanc. */
   symbol: string;
+  /** Rôle particulier : le détective est la victime du scénario « Tête-à-tête mortel ». */
+  role?: 'detective';
 }
 
 export interface StoryConfig {

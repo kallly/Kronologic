@@ -24,9 +24,10 @@ export function rect(x: number, y: number, w: number, h: number, attrs = ''): st
 }
 
 /** Une page A4 = une <section class="sheet"> contenant un SVG en mm, habillé par le thème. */
-export function sheet(theme: Theme, content: string, footer = ''): string {
-  return `<section class="sheet"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PAGE_W} ${PAGE_H}" width="${PAGE_W}mm" height="${PAGE_H}mm" font-family="${esc(theme.font)}" color="${theme.ink}"><defs>${theme.defs}</defs>${content}${
-    footer ? text(PAGE_W, PAGE_H - 1, footer, { size: 2.2, anchor: 'end', fill: theme.muted }) : ''
+export function sheet(theme: Theme, content: string, footer = '', orientation: 'portrait' | 'landscape' = 'portrait'): string {
+  const [w, h] = orientation === 'portrait' ? [PAGE_W, PAGE_H] : [PAGE_H, PAGE_W];
+  return `<section class="sheet ${orientation}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}mm" height="${h}mm" font-family="${esc(theme.font)}" color="${theme.ink}"><defs>${theme.defs}</defs>${content}${
+    footer ? text(w, h - 1, footer, { size: 2.2, anchor: 'end', fill: theme.muted }) : ''
   }</svg></section>`;
 }
 

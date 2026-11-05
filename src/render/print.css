@@ -3,6 +3,11 @@
   size: A4 portrait;
   margin: 10mm;
 }
+/* Page nommée : les feuilles de notes s'impriment à l'horizontale. */
+@page paysage {
+  size: A4 landscape;
+  margin: 10mm;
+}
 
 :root {
   --ink: #111;
@@ -30,6 +35,11 @@ body { margin: 0; font-family: system-ui, sans-serif; color: var(--ink); backgro
   position: relative;
   page-break-after: always;
   break-after: page;
+}
+.sheet.landscape {
+  width: 277mm;
+  height: 190mm;
+  page: paysage;
 }
 .sheet-footer { position: absolute; bottom: 0; right: 0; font-size: 7pt; color: var(--muted); }
 

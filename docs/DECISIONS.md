@@ -32,7 +32,7 @@ Décisions appliquées dans le moteur :
 
 ## Scénario v1 : « Tête-à-tête mortel » (`core/scenario.ts`)
 
-- Une victime (un des 6 personnages) est annoncée à la mise en place.
+- La victime est le **Détective** (personnage D, l'un des 6).
 - Le meurtre (empoisonnement) a lieu au **seul** moment où la victime est seule avec exactement un autre
   personnage : c'est le coupable. La victime continue de se déplacer (poison à effet différé).
 - La génération retire des histoires jusqu'à ce que ce moment soit **unique** → réponse unique à partir du
@@ -51,7 +51,7 @@ Décisions appliquées dans le moteur :
 |---|---|---|
 | Plan | 1 fois par plan | A4 |
 | Caches (6 étapes + 6 personnages) | 1 fois par plan | 60 × 85 mm, 9 par A4, traits de coupe, fenêtres à évider |
-| Feuilles de notes | 1 bloc par plan (× nb de joueurs) | A4 : 6 mini-plans + tableau personnages × salles |
+| Feuilles de notes | 1 bloc par plan (× nb de joueurs) | A4 **paysage** : étapes 1-3 à gauche, 4-6 à droite, tableau personnages × salles au centre |
 | Cartes de salle | **par partie** (6 cartes) | 60 × 85 mm pliée (recto contenu / verso nom + plan), 3 par A4, traits de coupe |
 | Mise en place + solution | **par partie** | A4 coupée en 2 : positions à l'étape 1 (publique) / trajets (secret) |
 

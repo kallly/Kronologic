@@ -118,6 +118,9 @@ Ce document sert de **base de référence** pour le générateur. Chaque affirma
 « transmission quand seuls ensemble »). C'est ce qui rend la génération automatique possible : on génère des
 trajets, on vérifie la contrainte, et on vérifie que la solution est **unique**.
 
+**Précisions validées par l'utilisateur (possède le jeu)** : dans *Poison mondain*, la victime est le
+**détective**, qui fait partie des 6 personnages ; empoisonné, il **continue de se déplacer** après le meurtre.
+
 ## 9. Plan / plateau
 
 | Fait | Niveau | Sources |
