@@ -44,7 +44,7 @@ Ce document sert de **base de référence** pour le générateur. Chaque affirma
 | Chaque personnage est **en permanence** dans l'un des lieux. | ✅ | [whatsericplaying][wep], [cardhaus][cardhaus] |
 | L'enquête indique **quels personnages et quelles plaquettes Temps** sont utilisés, et **la position de départ de chaque personnage au Temps 1**. | ⚠️ | [opinionatedgamers][og] (explicite) ; [whatsericplaying][wep] (« mettre en place le Temps 1 selon le livret ») |
 | Dans au moins un des premiers scénarios, la position de chaque personnage au premier temps est donnée. | ⚠️ | [punchboard][punchboard] |
-| Le nombre de personnages/temps peut varier selon l'enquête (déduit de la phrase « quels personnages et plaquettes Temps sont utilisés »). | ❓ | non confirmé |
+| Le nombre de personnages / temps **ne varie pas** selon l'enquête : le même matériel sert à toutes les enquêtes d'une boîte. | ✅ validé utilisateur | |
 
 ## 4. Règle de déplacement
 
@@ -72,7 +72,7 @@ Ce document sert de **base de référence** pour le générateur. Chaque affirma
 | **Nombre de personnages** présents dans ce lieu à ce Temps. | partagée | ✅ | [bgq-paris][bgq-paris], [geeksundergrace][gug], [ludoya][ludoya] |
 | **Identité d'un** personnage présent dans ce lieu à ce Temps (si le nombre n'est pas 0). | privée | ✅ | [geeksundergrace][gug], [bgq-paris][bgq-paris] |
 | Quel personnage est montré quand plusieurs sont présents (règle de choix). | — | ❓ | défini par l'auteur de la carte |
-| Ce qui est montré quand personne n'est présent. | — | ❓ | |
+| Quand personne n'est présent : la case privée affiche une **flèche « rejouer »** (le joueur peut reposer une question). | privée | ✅ validé utilisateur (possède le jeu) | |
 
 ### 5.2 Carte Lieu sous une plaquette **Personnage**
 
@@ -81,7 +81,7 @@ Ce document sert de **base de référence** pour le générateur. Chaque affirma
 | **Nombre de passages** de ce personnage dans ce lieu, tous Temps confondus. | partagée | ✅ | [jeudice][jeudice], [akoatujou][akoatujou], [gug][gug] |
 | **Un Temps précis** où ce personnage était dans ce lieu. | privée | ✅ | [gug][gug], [ludoya][ludoya] |
 | Quel Temps est montré quand il y a plusieurs passages (règle de choix). | — | ❓ | |
-| Ce qui est montré si 0 passage. | — | ❓ | |
+| Si 0 passage : même **flèche « rejouer »**. | privée | ✅ validé utilisateur | |
 
 > **Conséquence pour le support** : une carte Lieu contient, à des positions fixes, (a) pour chaque Temps
 > un nombre + un personnage, (b) pour chaque Personnage un nombre + un Temps. Chaque plaquette (cache)
@@ -154,9 +154,9 @@ Uniquement des points ✅ (ou ⚠️ validés par l'utilisateur, qui possède le
 ## 12. À vérifier dans la boîte (bloquant pour un rendu « fidèle »)
 
 - [ ] Règle de choix du personnage / du Temps privé quand plusieurs sont possibles.
-- [ ] Contenu de la case privée quand la réponse est 0.
+- [x] Contenu de la case privée quand la réponse est 0 → flèche « rejouer ».
 - [ ] Disposition exacte des cases sur une carte Lieu (positions relatives des fenêtres).
-- [ ] Le nombre de personnages / Temps varie-t-il selon l'enquête ?
+- [x] Le nombre de personnages / Temps varie-t-il selon l'enquête ? → non.
 - [ ] Règle d'annonce simultanée ; seuils de médailles en solo.
 
 ---

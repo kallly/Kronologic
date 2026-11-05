@@ -1,30 +1,48 @@
-import type { GameMap } from '../core/types';
+import type { GameMap, RoomId } from '../core/types';
+import { esc, n, text } from './svg';
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+export interface MapDrawOptions {
+  /** Afficher le nom des salles. */
+  labels?: boolean;
+  labelSize?: number;
+  /** Salle à mettre en évidence. */
+  highlight?: RoomId;
+  /** Contenu supplémentaire par salle (reçoit la boîte de la salle en mm). */
+  roomExtra?: (room: { id: RoomId; x: number; y: number; w: number; h: number }) => string;
+  stroke?: number;
+}
 
-/** Rendu SVG vectoriel du plan : salles + passages. */
-export function renderMapSvg(map: GameMap, opts: { labels?: boolean } = {}): string {
-  const { labels = true } = opts;
+/** Dessine le plan dans la boîte (x, y, width), hauteur proportionnelle. Retourne le SVG et la hauteur. */
+export function drawMap(map: GameMap, x: number, y: number, width: number, opts: MapDrawOptions = {}): { svg: string; height: number } {
+  const { labels = true, labelSize = 3, highlight, roomExtra, stroke = 0.5 } = opts;
+  const k = width / map.width;
+  const height = map.height * k;
   const byId = new Map(map.rooms.map((r) => [r.id, r]));
-  const rooms = map.rooms
-    .map(
-      (r) => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="#fff" stroke="#111" stroke-width="2"/>` +
-        (labels
-          ? `<text x="${r.x + r.w / 2}" y="${r.y + 14}" text-anchor="middle" font-size="10">${esc(r.name)}</text>`
-          : ''),
-    )
-    .join('');
-  // Passage = petit rectangle noir centré sur le mur commun.
-  const doors = map.doors
-    .map(([a, b]) => {
-      const ra = byId.get(a)!;
-      const rb = byId.get(b)!;
-      const cx = (Math.max(ra.x, rb.x) + Math.min(ra.x + ra.w, rb.x + rb.w)) / 2;
-      const cy = (Math.max(ra.y, rb.y) + Math.min(ra.y + ra.h, rb.y + rb.h)) / 2;
-      const vertical = ra.x + ra.w === rb.x || rb.x + rb.w === ra.x;
-      const [w, h] = vertical ? [6, 20] : [20, 6];
-      return `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" fill="#111"/>`;
-    })
-    .join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 ${map.width + 8} ${map.height + 8}" width="100%">${rooms}${doors}</svg>`;
+  const parts: string[] = [];
+
+  for (const r of map.rooms) {
+    const box = { id: r.id, x: x + r.x * k, y: y + r.y * k, w: r.w * k, h: r.h * k };
+    parts.push(
+      `<rect x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}" fill="${r.id === highlight ? '#d9d9d9' : '#fff'}" stroke="#111" stroke-width="${stroke}"/>`,
+    );
+    if (labels) parts.push(text(box.x + box.w / 2, box.y + labelSize * 0.9, r.name, { size: labelSize }));
+    if (roomExtra) parts.push(roomExtra(box));
+  }
+  // Passage : petit bloc noir à cheval sur le mur commun.
+  for (const [a, b] of map.doors) {
+    const ra = byId.get(a)!;
+    const rb = byId.get(b)!;
+    const cx = (Math.max(ra.x, rb.x) + Math.min(ra.x + ra.w, rb.x + rb.w)) / 2;
+    const cy = (Math.max(ra.y, rb.y) + Math.min(ra.y + ra.h, rb.y + rb.h)) / 2;
+    const vertical = ra.x + ra.w === rb.x || rb.x + rb.w === ra.x;
+    const [dw, dh] = vertical ? [stroke * 3, width * 0.06] : [width * 0.06, stroke * 3];
+    parts.push(`<rect x="${n(x + cx * k - dw / 2)}" y="${n(y + cy * k - dh / 2)}" width="${n(dw)}" height="${n(dh)}" fill="#111"/>`);
+  }
+  return { svg: parts.join(''), height };
+}
+
+/** Plan seul, en SVG autonome (aperçu écran). */
+export function renderMapSvg(map: GameMap): string {
+  const { svg, height } = drawMap(map, 2, 2, 100, { labelSize: 4 });
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104 ${n(height + 4)}" width="100%"><title>${esc(map.name)}</title>${svg}</svg>`;
 }

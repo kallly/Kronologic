@@ -16,11 +16,9 @@ src/
   render/                # PARTIE 2 – génération des supports (A4)
     print.css            #   @page A4, feuilles, mode impression                          ✅
     mapSvg.ts            #   rendu SVG d'un plan (réutilisé par la feuille de notes)      ✅
-    cutMarks.ts          #   traits de coupe                                               J5
-    roomCards.ts         #   cartes de salle quadrillées                                   J5
-    masks.ts             #   caches personnage / étape                                     J5
-    noteSheets.ts        #   feuilles de notes (6 mini-plans + liste personnages)          J5
-    solutionSheet.ts     #   solution                                                      J5
+    layout.ts            #   gabarit unique carte/caches (mm)                              ✅
+    cutMarks.ts          #   placement en grille + traits de coupe                         ✅
+    documents.ts         #   plan, caches, feuilles de notes, cartes de salle, fiche partie ✅
   main.ts                # interface : plan, graine, étapes, documents à imprimer
 ```
 
@@ -35,16 +33,16 @@ n'est qu'une vue imprimable de ces données.
 - **J3 – Histoires** ✅ (v1) trajets + histoires des salles, reproductibles par graine.
 - **J4 – Énigme & solveur** : définir le scénario à résoudre, garantir une solution unique,
   régénérer sinon ; estimer la difficulté.
-- **J5 – Supports** (dans cet ordre, chacun imprimé et mesuré à la règle) :
+- **J5 – Supports** ✅ (v1, à valider sur papier — imprimer, découper, mesurer) :
   1. cartes de salle avec quadrillage à positions fixes + traits de coupe ;
   2. caches personnage et étape, fenêtres alignées sur le quadrillage + traits de coupe ;
   3. feuilles de notes (6 étapes/feuille, pagination automatique) ;
   4. feuille solution.
-- **J6 – Interface** : choix des documents à imprimer, nombre d'exemplaires des feuilles de notes,
-  paramètres dans l'URL (déjà en place), export/import JSON d'une partie.
+- **J6 – Interface** ✅ (v1) choix des documents, nb de joueurs, plage de parties, paramètres dans l'URL.
+  Reste : export/import JSON d'une partie, positions de départ imposées par une histoire écrite à la main.
 - **J7 – Plusieurs plans** : nouveaux plans, éventuellement éditeur visuel, export PDF si besoin.
 
 ## Contrainte clé pour J5
-Cartes et caches partagent **un seul gabarit de coordonnées** (`render/layout.ts`) : position de chaque
+Cartes et caches partagent **un seul gabarit de coordonnées** (`render/layout.ts`, testé dans `tests/layout.test.ts`) : position de chaque
 case du quadrillage en mm. Les fenêtres des caches sont calculées depuis ce gabarit, ce qui garantit
 l'alignement quel que soit le nombre d'étapes ou de personnages.

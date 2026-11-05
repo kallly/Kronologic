@@ -1,73 +1,79 @@
 import './render/print.css';
 import { generateStory } from './core/story';
 import { buildRoomStories } from './core/roomStory';
-import { randomSeed } from './core/rng';
 import { maps, defaultCharacters } from './maps';
-import { renderMapSvg } from './render/mapSvg';
+import { mapSheet, maskSheets, noteSheets, questSheet, roomCardSheets, type Material } from './render/documents';
+
+const STEPS = 6; // fixe (règle du jeu) ; le moteur reste paramétrable.
+
+type DocKey = 'map' | 'masks' | 'notes' | 'cards' | 'quest';
+const DOCS: { key: DocKey; label: string; common: boolean }[] = [
+  { key: 'map', label: 'Plan', common: true },
+  { key: 'masks', label: 'Caches', common: true },
+  { key: 'notes', label: 'Feuilles de notes', common: true },
+  { key: 'cards', label: 'Cartes de salle', common: false },
+  { key: 'quest', label: 'Mise en place + solution', common: false },
+];
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const params = new URLSearchParams(location.search);
-
 const state = {
   mapId: params.get('map') ?? maps[0]!.id,
-  seed: params.get('seed') ?? randomSeed(),
-  steps: Number(params.get('steps') ?? 6),
+  from: Math.max(1, Number(params.get('from') ?? 1)),
+  count: Math.max(1, Number(params.get('count') ?? 1)),
+  players: Math.max(1, Number(params.get('players') ?? 4)),
+  docs: new Set<DocKey>((params.get('docs')?.split(',') as DocKey[] | undefined) ?? DOCS.map((d) => d.key)),
 };
+
+/** Une partie = un numéro ; la graine en dérive (même plan + même n° ⇒ même partie). */
+const questSeed = (mapId: string, n: number) => `${mapId}#${n}`;
 
 function render(): void {
   const map = maps.find((m) => m.id === state.mapId) ?? maps[0]!;
-  const story = generateStory(map, {
-    seed: state.seed,
-    steps: state.steps,
-    characters: defaultCharacters,
+  const material: Material = { map, characters: defaultCharacters, steps: STEPS };
+  const quests = Array.from({ length: state.count }, (_, i) => {
+    const number = state.from + i;
+    const story = generateStory(map, { seed: questSeed(map.id, number), steps: STEPS, characters: defaultCharacters });
+    return { label: `Partie n° ${number}`, story, rooms: buildRoomStories(story) };
   });
-  const rooms = buildRoomStories(story);
-  const footer = `${map.name} · graine ${state.seed} · ${state.steps} étapes`;
-  const stepHeaders = Array.from({ length: state.steps }, (_, i) => `<th>${i + 1}</th>`).join('');
 
-  history.replaceState(null, '', `?map=${map.id}&seed=${state.seed}&steps=${state.steps}`);
+  const pages: string[] = [];
+  if (state.docs.has('map')) pages.push(mapSheet(material));
+  if (state.docs.has('masks')) pages.push(...maskSheets(material));
+  if (state.docs.has('notes')) for (let i = 0; i < state.players; i++) pages.push(...noteSheets(material));
+  if (state.docs.has('cards')) pages.push(...roomCardSheets(material, quests));
+  if (state.docs.has('quest')) pages.push(...quests.map((q) => questSheet(material, q.story, q.label)));
+
+  history.replaceState(null, '', `?map=${map.id}&from=${state.from}&count=${state.count}&players=${state.players}&docs=${[...state.docs].join(',')}`);
+
+  const checkbox = (d: (typeof DOCS)[number]) =>
+    `<label><input type="checkbox" data-doc="${d.key}" ${state.docs.has(d.key) ? 'checked' : ''}> ${d.label}</label>`;
 
   app.innerHTML = `
     <div class="toolbar no-print">
       <label>Plan <select id="map">${maps.map((m) => `<option value="${m.id}" ${m.id === map.id ? 'selected' : ''}>${m.name}</option>`).join('')}</select></label>
-      <label>Graine <input id="seed" value="${state.seed}" size="8"></label>
-      <button id="reroll">Nouvelle partie</button>
-      <label>Étapes <input id="steps" type="number" min="1" max="12" value="${state.steps}"></label>
+      <fieldset><legend>Matériel commun (réutilisable)</legend>
+        ${DOCS.filter((d) => d.common).map(checkbox).join('')}
+        <label>Joueurs <input id="players" type="number" min="1" max="8" value="${state.players}"></label>
+      </fieldset>
+      <fieldset><legend>Par partie</legend>
+        ${DOCS.filter((d) => !d.common).map(checkbox).join('')}
+        <label>Parties n° <input id="from" type="number" min="1" value="${state.from}"></label>
+        <label>à <input id="to" type="number" min="1" value="${state.from + state.count - 1}"></label>
+      </fieldset>
+      <span>${pages.length} page(s)</span>
       <button onclick="print()">Imprimer</button>
     </div>
+    ${pages.join('')}`;
 
-    <section class="sheet">
-      <h2>${map.name}</h2>
-      ${renderMapSvg(map)}
-      <div class="sheet-footer">${footer}</div>
-    </section>
-
-    <section class="sheet debug">
-      <h2>Solution (aperçu provisoire)</h2>
-      <table>
-        <tr><th></th>${stepHeaders}</tr>
-        ${defaultCharacters.map((c) => `<tr><th style="color:${c.color}">${c.name}</th>${story.paths[c.id]!.map((r) => `<td>${map.rooms.find((x) => x.id === r)!.name}</td>`).join('')}</tr>`).join('')}
-      </table>
-      <h2 style="margin-top:8mm">Histoires des salles (aperçu provisoire)</h2>
-      ${rooms.map((rs) => `
-        <h3>${map.rooms.find((r) => r.id === rs.roomId)!.name}</h3>
-        <table>
-          <tr><th>Étape</th>${stepHeaders}</tr>
-          <tr><th>Présents</th>${rs.steps.map((s) => `<td>${s.count}</td>`).join('')}</tr>
-          <tr><th>Perso vu</th>${rs.steps.map((s) => `<td>${s.revealedCharacter ?? '–'}</td>`).join('')}</tr>
-        </table>
-        <table style="margin-top:1mm">
-          <tr><th></th>${defaultCharacters.map((c) => `<th style="color:${c.color}">${c.symbol}</th>`).join('')}</tr>
-          <tr><th>Passages</th>${defaultCharacters.map((c) => `<td>${rs.characters[c.id]!.visits}</td>`).join('')}</tr>
-          <tr><th>Étape vue</th>${defaultCharacters.map((c) => { const s = rs.characters[c.id]!.revealedStep; return `<td>${s === null ? '–' : s + 1}</td>`; }).join('')}</tr>
-        </table>`).join('')}
-      <div class="sheet-footer">${footer}</div>
-    </section>`;
-
+  const num = (id: string) => Math.max(1, Number(app.querySelector<HTMLInputElement>(`#${id}`)!.value) || 1);
   app.querySelector<HTMLSelectElement>('#map')!.onchange = (e) => { state.mapId = (e.target as HTMLSelectElement).value; render(); };
-  app.querySelector<HTMLInputElement>('#seed')!.onchange = (e) => { state.seed = (e.target as HTMLInputElement).value; render(); };
-  app.querySelector<HTMLInputElement>('#steps')!.onchange = (e) => { state.steps = Math.max(1, Number((e.target as HTMLInputElement).value)); render(); };
-  app.querySelector<HTMLButtonElement>('#reroll')!.onclick = () => { state.seed = randomSeed(); render(); };
+  app.querySelector<HTMLInputElement>('#players')!.onchange = () => { state.players = num('players'); render(); };
+  app.querySelector<HTMLInputElement>('#from')!.onchange = () => { const to = state.from + state.count - 1; state.from = num('from'); state.count = Math.max(1, to - state.from + 1); render(); };
+  app.querySelector<HTMLInputElement>('#to')!.onchange = () => { state.count = Math.max(1, num('to') - state.from + 1); render(); };
+  app.querySelectorAll<HTMLInputElement>('[data-doc]').forEach((el) => {
+    el.onchange = () => { const k = el.dataset.doc as DocKey; if (el.checked) state.docs.add(k); else state.docs.delete(k); render(); };
+  });
 }
 
 render();
