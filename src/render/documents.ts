@@ -1,3 +1,4 @@
+import type { Murder } from '../core/scenario';
 import type { Character, GameMap, RoomStory, Story } from '../core/types';
 import { cutMarks, gridPlacement } from './cutMarks';
 import { cornerMarker, replayIcon } from './icons';
@@ -213,14 +214,21 @@ export function noteSheets(m: Material, perSheet = 6): string[] {
       p.push(drawMap(m.map, x, y + 5, mapW, mapOpts(t, {
         labelSize: 2.4,
         stroke: 0.35,
-        roomExtra: (box) =>
-          m.characters
+        roomExtra: (box) => {
+          // Lettres à cocher, réparties dans la salle sous son nom (s'adapte aux salles asymétriques).
+          const top = box.y + 5;
+          const area = { x: box.x + 1.5, y: top, w: box.w - 3, h: box.y + box.h - top - 1.5 };
+          const cols = area.w >= area.h * 1.6 ? 6 : area.w >= area.h * 0.6 ? 3 : 2;
+          const rows = Math.ceil(m.characters.length / cols);
+          const size = Math.max(1.8, Math.min(2.8, (area.h / rows) * 0.75, (area.w / cols) * 0.75));
+          return m.characters
             .map((c, i) => {
-              const cx = box.x + box.w * ((i % 3) + 0.5) / 3;
-              const cy = box.y + box.h * 0.45 + Math.floor(i / 3) * 4.5;
-              return text(cx, cy, c.symbol, { size: 2.8, fill: '#b5b5b5', weight: 'bold' });
+              const cx = area.x + area.w * ((i % cols) + 0.5) / cols;
+              const cy = area.y + area.h * (Math.floor(i / cols) + 0.5) / rows;
+              return text(cx, cy, c.symbol, { size, fill: '#b5b5b5', weight: 'bold' });
             })
-            .join(''),
+            .join('');
+        },
       })).svg);
     };
     group.slice(0, 3).forEach((s, i) => drawStep(s, 5 + i * (mapW + 4), 10));
@@ -258,45 +266,68 @@ export function noteSheets(m: Material, perSheet = 6): string[] {
 // ---------------------------------------------------------------------------
 // 5. Fiche de partie : mise en place (haut, public) + solution (bas, à découper)
 // ---------------------------------------------------------------------------
-export function questSheet(m: Material, story: Story, label: string): string {
+export function questSheet(m: Material, story: Story, murder: Murder, label: string): string {
   const t = m.theme;
   const p: string[] = [];
   const half = PAGE_H / 2;
   const headFill = t.id === 'minimal' ? 'none' : t.decorated ? t.highlightFill : '#eee';
+  const byId = (id: string) => m.characters.find((c) => c.id === id)!;
+  const victim = byId(murder.victim);
 
+  // --- Haut : mise en place (public) ---------------------------------------
   p.push(title(t, 5, 6, `${label} — mise en place`, 4.5, 'start'));
-  p.push(text(5, 13, "Position des personnages à l'étape 1 :", { size: 3, anchor: 'start' }));
-  p.push(drawMap(m.map, 30, 17, PAGE_W - 60, mapOpts(t, {
-    labelSize: 3.4,
+  p.push(text(5, 13, `Victime : ${victim.name} (${victim.symbol}), empoisonné·e au cours de la soirée.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
+  p.push(text(5, 18.5, 'Le coupable était seul avec la victime. Trouvez QUI, OÙ et à quelle ÉTAPE.', { size: 3, anchor: 'start' }));
+  p.push(text(5, 24, "Position des personnages à l'étape 1 :", { size: 3, anchor: 'start' }));
+  const mapW = Math.min(PAGE_W - 60, (half - 34) * (m.map.width / m.map.height));
+  p.push(drawMap(m.map, (PAGE_W - mapW) / 2, 28, mapW, mapOpts(t, {
+    labelSize: 3.2,
     roomExtra: (box) =>
       m.characters
         .filter((c) => story.paths[c.id]![0] === box.id)
-        .map((c, i) => characterBadge(t, c, box.x + 10 + (i % 4) * 7, box.y + box.h / 2 + Math.floor(i / 4) * 7, 2.8))
+        .map((c, i) => characterBadge(t, c, box.x + 6 + (i % 4) * 6.5, box.y + 9 + Math.floor(i / 4) * 6.5, 2.6))
         .join(''),
   })).svg);
 
   p.push(`<line x1="0" y1="${half}" x2="${PAGE_W}" y2="${half}" stroke="currentColor" stroke-width="0.3" stroke-dasharray="3 2"/>`);
   p.push(text(PAGE_W / 2, half + 3, '✂ découper — partie basse = SOLUTION, à garder cachée', { size: 2.5, fill: t.muted }));
 
+  // --- Bas : solution = salles × étapes, lettres des présents ----------------
   const top = half + 10;
   p.push(title(t, 5, top, `${label} — solution`, 4.5, 'start'));
   const nameW = 34;
   const cw = (PAGE_W - 10 - nameW) / m.steps;
-  const rh = 9;
+  const rh = Math.min(13, (PAGE_H - top - 30) / (m.map.rooms.length + 1));
+  const gridTop = top + 5;
   for (let s = 0; s < m.steps; s++) {
-    p.push(rect(5 + nameW + s * cw, top + 5, cw, rh, `fill="${headFill}" ${line}`));
-    p.push(text(5 + nameW + s * cw + cw / 2, top + 5 + rh / 2, `Étape ${s + 1}`, { size: 2.8, weight: 'bold' }));
+    p.push(rect(5 + nameW + s * cw, gridTop, cw, rh, `fill="${headFill}" ${line}`));
+    p.push(text(5 + nameW + s * cw + cw / 2, gridTop + rh / 2, `Étape ${s + 1}`, { size: 2.8, weight: 'bold' }));
   }
-  m.characters.forEach((c, i) => {
-    const y = top + 5 + rh * (i + 1);
-    p.push(rect(5, y, nameW, rh, `fill="none" ${line}`));
-    p.push(characterBadge(t, c, 9, y + rh / 2, 2.5) + text(13, y + rh / 2, c.name, { size: 3, anchor: 'start' }));
-    story.paths[c.id]!.forEach((roomId, s) => {
-      p.push(rect(5 + nameW + s * cw, y, cw, rh, `fill="none" ${line}`));
-      p.push(text(5 + nameW + s * cw + cw / 2, y + rh / 2, roomName(m.map, roomId), { size: 2.6 }));
-    });
+  const murderFill = t.id === 'minimal' ? '#f6d0d0' : '#e9a3a3';
+  m.map.rooms.forEach((room, r) => {
+    const y = gridTop + rh * (r + 1);
+    p.push(rect(5, y, nameW, rh, `fill="${headFill}" ${line}`));
+    p.push(text(8, y + rh / 2, room.name, { size: 3, anchor: 'start', weight: 'bold' }));
+    for (let s = 0; s < m.steps; s++) {
+      const x = 5 + nameW + s * cw;
+      const isMurder = room.id === murder.room && s === murder.step;
+      p.push(rect(x, y, cw, rh, `fill="${isMurder ? murderFill : 'none'}" ${isMurder ? 'stroke="#b22" stroke-width="0.6"' : line}`));
+      const present = m.characters.filter((c) => story.paths[c.id]![s] === room.id);
+      const r0 = Math.min(2.3, rh / 4.6);
+      present.forEach((c, k) => {
+        const perRow = 4;
+        const rows = Math.ceil(present.length / perRow);
+        const inRow = Math.min(perRow, present.length - Math.floor(k / perRow) * perRow);
+        const cx = x + cw / 2 + ((k % perRow) - (inRow - 1) / 2) * (r0 * 2.4);
+        const cy = y + rh / 2 + (Math.floor(k / perRow) - (rows - 1) / 2) * (r0 * 2.4);
+        p.push(characterBadge(t, c, cx, cy, r0));
+      });
+    }
   });
-  const enigmaY = top + 5 + rh * (m.characters.length + 1) + 8;
-  p.push(text(5, enigmaY, 'Énigme : à venir (jalon J4 — objectif + solution unique)', { size: 3, anchor: 'start', fill: t.muted }));
+  const culprit = byId(murder.culprit);
+  const answerY = gridTop + rh * (m.map.rooms.length + 1) + 7;
+  p.push(rect(5, answerY - 4, 6, 6, `fill="${murderFill}" stroke="#b22" stroke-width="0.6"`));
+  p.push(text(14, answerY - 1, `Meurtre : ${culprit.name} (${culprit.symbol}) a empoisonné ${victim.name}`
+    + ` — ${roomName(m.map, murder.room)}, étape ${murder.step + 1}.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
   return sheet(t, p.join(''), `${m.map.name} · ${label}`);
 }

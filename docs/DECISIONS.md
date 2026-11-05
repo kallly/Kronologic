@@ -24,10 +24,20 @@ Décisions appliquées dans le moteur :
 ## Plans
 
 - Le plateau officiel (plan de l'Opéra) **n'est pas reproduit** dans le dépôt. Deux plans originaux sont fournis :
-  *Villa des Glycines* et *Musée de la Lanterne* (murs sans porte : toutes les salles voisines ne communiquent pas).
+  **Manoir de Brume** (par défaut, **asymétrique** : salles de tailles différentes, 3 murs sans porte),
+  *Musée de la Lanterne* et *Villa des Glycines*.
 - Les déplacements suivent uniquement les **portes** ; une porte n'est valide qu'entre deux salles qui partagent
   un mur (pas de saut de salle) — vérifié par `validateMap`.
 - Tout autre plan peut être **importé en JSON** depuis l'interface (bouton « Télécharger ce plan » = modèle).
+
+## Scénario v1 : « Tête-à-tête mortel » (`core/scenario.ts`)
+
+- Une victime (un des 6 personnages) est annoncée à la mise en place.
+- Le meurtre (empoisonnement) a lieu au **seul** moment où la victime est seule avec exactement un autre
+  personnage : c'est le coupable. La victime continue de se déplacer (poison à effet différé).
+- La génération retire des histoires jusqu'à ce que ce moment soit **unique** → réponse unique à partir du
+  trajet complet. *Reste à faire (solveur) : vérifier que la réponse est déductible à partir des seules cartes.*
+- **Solution** : quadrillage salles × étapes avec les lettres des personnages présents ; la case du meurtre est colorée.
 
 ## Thèmes
 

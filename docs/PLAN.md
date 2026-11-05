@@ -10,7 +10,7 @@ src/
     map.ts               #   validation du plan (salles, passages, connexité)             ✅
     story.ts             #   trajets des personnages                                      ✅
     roomStory.ts         #   histoire de chaque salle = contenu des cartes de salle       ✅
-    scenario.ts          #   énigme (qui/où/quand) + conditions                           J4
+    scenario.ts          #   énigme « Tête-à-tête mortel », meurtre unique                 ✅ v1
     solver.ts            #   unicité / déductibilité de la solution                        J4
   maps/                  # plans (un fichier par plan)                                    ✅ 1 plan démo
   render/                # PARTIE 2 – génération des supports (A4)
@@ -31,8 +31,8 @@ n'est qu'une vue imprimable de ces données.
 - **J2 – Plan** ✅ (v1) format de plan, validation, rendu SVG du plan seul.
   Reste : passer le plan en JSON importable, ajouter une règle de calibration en mm.
 - **J3 – Histoires** ✅ (v1) trajets + histoires des salles, reproductibles par graine.
-- **J4 – Énigme & solveur** : définir le scénario à résoudre, garantir une solution unique,
-  régénérer sinon ; estimer la difficulté.
+- **J4 – Énigme & solveur** : ✅ scénario v1 avec meurtre unique. Reste : solveur prouvant que la réponse
+  se déduit des cartes seules, niveaux de difficulté, autres scénarios (« seul à chaque étape », objet transmis).
 - **J5 – Supports** ✅ (v1, à valider sur papier — imprimer, découper, mesurer) :
   1. cartes de salle avec quadrillage à positions fixes + traits de coupe ;
   2. caches personnage et étape, fenêtres alignées sur le quadrillage + traits de coupe ;

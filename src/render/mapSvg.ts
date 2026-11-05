@@ -27,7 +27,7 @@ export function drawMap(map: GameMap, x: number, y: number, width: number, opts:
     parts.push(
       `<rect x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}" fill="${r.id === highlight ? highlightFill : roomFill}" stroke="currentColor" stroke-width="${stroke}"/>`,
     );
-    if (labels) parts.push(text(box.x + box.w / 2, box.y + labelSize * 0.9, r.name, { size: labelSize }));
+    if (labels) parts.push(text(box.x + box.w / 2, box.y + labelSize * 1.25, r.name, { size: labelSize }));
     if (roomExtra) parts.push(roomExtra(box));
   }
   // Passage (porte) : petit bloc à cheval sur le mur commun. Un mur sans porte ne se traverse pas.

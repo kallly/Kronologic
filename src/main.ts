@@ -1,5 +1,5 @@
 import './render/print.css';
-import { generateStory } from './core/story';
+import { generateMurderStory } from './core/scenario';
 import { buildRoomStories } from './core/roomStory';
 import { maps as builtinMaps, defaultCharacters } from './maps';
 import { parseMap } from './core/map';
@@ -52,8 +52,8 @@ function render(): void {
   const material: Material = { map, characters: defaultCharacters, steps: STEPS, theme };
   const quests = Array.from({ length: state.count }, (_, i) => {
     const number = state.from + i;
-    const story = generateStory(map, { seed: questSeed(map.id, number), steps: STEPS, characters: defaultCharacters });
-    return { label: `Partie n° ${number}`, story, rooms: buildRoomStories(story) };
+    const { story, murder } = generateMurderStory(map, { seed: questSeed(map.id, number), steps: STEPS, characters: defaultCharacters });
+    return { label: `Partie n° ${number}`, story, murder, rooms: buildRoomStories(story) };
   });
 
   const pages: string[] = [];
@@ -61,7 +61,7 @@ function render(): void {
   if (state.docs.has('masks')) pages.push(...maskSheets(material));
   if (state.docs.has('notes')) for (let i = 0; i < state.players; i++) pages.push(...noteSheets(material));
   if (state.docs.has('cards')) pages.push(...roomCardSheets(material, quests));
-  if (state.docs.has('quest')) pages.push(...quests.map((q) => questSheet(material, q.story, q.label)));
+  if (state.docs.has('quest')) pages.push(...quests.map((q) => questSheet(material, q.story, q.murder, q.label)));
 
   history.replaceState(null, '', `?map=${map.id}&theme=${theme.id}&from=${state.from}&count=${state.count}&players=${state.players}&docs=${[...state.docs].join(',')}`);
 
