@@ -152,7 +152,9 @@ Uniquement des points ✅ (ou ⚠️ validés par l'utilisateur, qui possède le
    - par Personnage : nombre de passages (partagé) + **un** Temps de passage (privé). (✅)
 4. **Caches** : un cache par Temps et un par Personnage, chacun ouvrant exactement la paire d'infos correspondante. (✅)
 5. **Fin de partie / solo** : hors périmètre du générateur (règles de table), mais imprimées sur la feuille de règles. (✅)
-6. **Objectif** : contrainte sur les trajets + solution unique, à modéliser par type de scénario (J4).
+6. **Objectifs** : 3 modes reprenant les 3 scénarios de Paris 1920 (§8), 5 enquêtes chacun, un jeu de cartes par
+   enquête. Précisions utilisateur : meurtre entre les étapes 3 et 6 ; aucune carte seule ne doit révéler la réponse.
+   Règle de transmission du Bijou : ⚠️ hypothèse (une source).
 
 ## 12. À vérifier dans la boîte (bloquant pour un rendu « fidèle »)
 

@@ -1,5 +1,5 @@
-import type { Murder } from '../core/scenario';
-import type { Character, GameMap, RoomStory, Story } from '../core/types';
+import type { Quest } from '../core/quests';
+import type { Character, GameMap, RoomStory } from '../core/types';
 import { cutMarks, gridPlacement } from './cutMarks';
 import { cornerMarker, replayIcon, roomGlyph } from './icons';
 import { CARD_H, CARD_W, MASK_LABEL, cardLayout, columnWindow, titleWindow, type Box } from './layout';
@@ -255,26 +255,34 @@ export function noteSheets(m: Material, perSheet = 6): string[] {
 // ---------------------------------------------------------------------------
 // 5. Fiche de partie : mise en place (haut, public) + solution (bas, à découper)
 // ---------------------------------------------------------------------------
-export function questSheet(m: Material, story: Story, murder: Murder, label: string): string {
+export function questSheet(m: Material, quest: Quest): string {
   const t = m.theme;
   const p: string[] = [];
   const half = PAGE_H / 2;
   const headFill = t.id === 'minimal' ? 'none' : t.decorated ? t.highlightFill : '#eee';
-  const byId = (id: string) => m.characters.find((c) => c.id === id)!;
-  const victim = byId(murder.victim);
+  const { story } = quest;
 
   // --- Haut : mise en place (public) ---------------------------------------
-  p.push(title(t, 5, 6, `${label} — mise en place`, 4.5, 'start'));
-  p.push(text(5, 13, `Victime : le ${victim.name} (${victim.symbol}), empoisonné au cours de la soirée.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
-  p.push(text(5, 18.5, "Le coupable était seul avec lui. Le poison agit lentement : il continue de se déplacer jusqu'à la fin.", { size: 3, anchor: 'start' }));
-  p.push(text(5, 24, "Trouvez QUI, OÙ et à quelle ÉTAPE. Position des personnages à l'étape 1 :", { size: 3, anchor: 'start' }));
-  const mapW = Math.min(PAGE_W - 60, (half - 34) * (m.map.width / m.map.height));
-  p.push(drawMap(m.map, (PAGE_W - mapW) / 2, 28, mapW, mapOpts(t, {
-    labelSize: 3.2,
+  p.push(title(t, 5, 6, `${quest.label} — mise en place`, 4.5, 'start', PAGE_W - 10));
+  let y = 13;
+  for (const lineText of [...quest.intro, ...quest.facts]) {
+    p.push(text(5, y, lineText, { size: 2.9, anchor: 'start' }));
+    y += 4.6;
+  }
+  p.push(text(5, y + 0.6, quest.question, { size: 3.2, anchor: 'start', weight: 'bold' }));
+  y += 6;
+  const unknown = m.characters.filter((c) => !quest.knownStarts[c.id]);
+  p.push(text(5, y, unknown.length === m.characters.length
+    ? "Positions de départ : aucune n'est connue."
+    : `Positions à l'étape 1${unknown.length ? ` (inconnues : ${unknown.map((c) => c.symbol).join(', ')})` : ''} :`, { size: 2.9, anchor: 'start' }));
+  const mapTop = y + 4;
+  const mapW = Math.min(PAGE_W - 60, (half - mapTop - 6) * (m.map.width / m.map.height));
+  p.push(drawMap(m.map, (PAGE_W - mapW) / 2, mapTop, mapW, mapOpts(t, {
+    labelSize: 3,
     roomExtra: (box) =>
       m.characters
-        .filter((c) => story.paths[c.id]![0] === box.id)
-        .map((c, i) => characterBadge(t, c, box.x + 6 + (i % 4) * 6.5, box.y + 9 + Math.floor(i / 4) * 6.5, 2.6))
+        .filter((c) => quest.knownStarts[c.id] === box.id)
+        .map((c, i) => characterBadge(t, c, box.x + 6 + (i % 4) * 6.5, box.y + 8.5 + Math.floor(i / 4) * 6.5, 2.6))
         .join(''),
   })).svg);
 
@@ -283,7 +291,7 @@ export function questSheet(m: Material, story: Story, murder: Murder, label: str
 
   // --- Bas : solution = salles × étapes, lettres des présents ----------------
   const top = half + 10;
-  p.push(title(t, 5, top, `${label} — solution`, 4.5, 'start'));
+  p.push(title(t, 5, top, `${quest.label} — solution`, 4.5, 'start', PAGE_W - 10));
   const nameW = 34;
   const cw = (PAGE_W - 10 - nameW) / m.steps;
   const rh = Math.min(13, (PAGE_H - top - 30) / (m.map.rooms.length + 1));
@@ -292,15 +300,17 @@ export function questSheet(m: Material, story: Story, murder: Murder, label: str
     p.push(rect(5 + nameW + s * cw, gridTop, cw, rh, `fill="${headFill}" ${line}`));
     p.push(text(5 + nameW + s * cw + cw / 2, gridTop + rh / 2, `Étape ${s + 1}`, { size: 2.8, weight: 'bold' }));
   }
-  const murderFill = t.id === 'minimal' ? '#f6d0d0' : '#e9a3a3';
+  const answerFill = t.id === 'minimal' ? '#f6d0d0' : '#e9a3a3';
+  const trailFill = t.id === 'minimal' ? '#fbf0c8' : '#f1dc9c';
   m.map.rooms.forEach((room, r) => {
     const y = gridTop + rh * (r + 1);
     p.push(rect(5, y, nameW, rh, `fill="${headFill}" ${line}`));
     p.push(text(8, y + rh / 2, room.name, { size: 3, anchor: 'start', weight: 'bold' }));
     for (let s = 0; s < m.steps; s++) {
       const x = 5 + nameW + s * cw;
-      const isMurder = room.id === murder.room && s === murder.step;
-      p.push(rect(x, y, cw, rh, `fill="${isMurder ? murderFill : 'none'}" ${isMurder ? 'stroke="#b22" stroke-width="0.6"' : line}`));
+      const h = quest.highlights.find((hl) => hl.room === room.id && hl.step === s);
+      const fill = h?.kind === 'answer' ? answerFill : h?.kind === 'trail' ? trailFill : 'none';
+      p.push(rect(x, y, cw, rh, `fill="${fill}" ${h?.kind === 'answer' ? 'stroke="#b22" stroke-width="0.6"' : line}`));
       const present = m.characters.filter((c) => story.paths[c.id]![s] === room.id);
       const r0 = Math.min(2.3, rh / 4.6);
       present.forEach((c, k) => {
@@ -313,10 +323,12 @@ export function questSheet(m: Material, story: Story, murder: Murder, label: str
       });
     }
   });
-  const culprit = byId(murder.culprit);
   const answerY = gridTop + rh * (m.map.rooms.length + 1) + 7;
-  p.push(rect(5, answerY - 4, 6, 6, `fill="${murderFill}" stroke="#b22" stroke-width="0.6"`));
-  p.push(text(14, answerY - 1, `Meurtre : ${culprit.name} (${culprit.symbol}) a empoisonné le ${victim.name}`
-    + ` — ${roomName(m.map, murder.room)}, étape ${murder.step + 1}.`, { size: 3.2, anchor: 'start', weight: 'bold' }));
-  return sheet(t, p.join(''), `${m.map.name} · ${label}`);
+  p.push(rect(5, answerY - 4, 6, 6, `fill="${answerFill}" stroke="#b22" stroke-width="0.6"`));
+  p.push(text(14, answerY - 1, quest.answerText, { size: 3.2, anchor: 'start', weight: 'bold' }));
+  if (quest.highlights.some((h) => h.kind === 'trail')) {
+    p.push(rect(5, answerY + 4, 6, 6, `fill="${trailFill}" ${line}`));
+    p.push(text(14, answerY + 7, 'parcours (porteur à chaque étape)', { size: 2.9, anchor: 'start' }));
+  }
+  return sheet(t, p.join(''), `${m.map.name} · ${quest.label}`);
 }
