@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createRng } from '../src/core/rng';
-import { validateMap } from '../src/core/map';
+import { parseMap, validateMap } from '../src/core/map';
 import { generateStory, isValidPath } from '../src/core/story';
 import { buildRoomStories } from '../src/core/roomStory';
 import { maps, defaultCharacters } from '../src/maps';
@@ -88,5 +88,34 @@ describe('génération des histoires', () => {
         else expect(story.paths[c.id]![info.revealedStep!]).toBe(r.roomId);
       }
     }
+  });
+});
+
+describe('portes et murs', () => {
+  const musee = maps.find((m) => m.id === 'musee')!;
+
+  it('ne traverse jamais un mur sans porte', () => {
+    for (let i = 0; i < 100; i++) {
+      const story = generateStory(musee, config(`m${i}`));
+      for (const path of Object.values(story.paths)) {
+        path.slice(1).forEach((room, k) => {
+          const pair = [path[k], room].sort().join('|');
+          expect(pair).not.toBe(['cabinet', 'statues'].sort().join('|'));
+          expect(pair).not.toBe(['observatoire', 'reserve'].sort().join('|'));
+        });
+      }
+    }
+  });
+
+  it('refuse une porte entre deux salles non contiguës (pas de saut)', () => {
+    const bad: GameMap = { ...musee, doors: [...musee.doors, ['egypte', 'reserve']] };
+    expect(validateMap(bad).join()).toContain('non contiguës');
+  });
+});
+
+describe('import de plan', () => {
+  it('accepte un plan valide et rejette un plan mal formé', () => {
+    expect(parseMap(JSON.parse(JSON.stringify(maps[1])))).toEqual(maps[1]);
+    expect(() => parseMap({ id: 'x', name: 'x', width: 1, height: 1, rooms: [{ id: 'a' }], doors: [] })).toThrow('Salle mal formée');
   });
 });

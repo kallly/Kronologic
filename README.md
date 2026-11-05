@@ -18,6 +18,7 @@ puis le met en page pour une impression sur feuilles **A4**.
 
 - [`docs/REGLES_KRONOLOGIC.md`](docs/REGLES_KRONOLOGIC.md) — règles du jeu original, vérifiées et sourcées.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — choix arrêtés et points ouverts.
+- [`docs/FORMAT_PLAN.md`](docs/FORMAT_PLAN.md) — format JSON pour importer un plan.
 - [`docs/PLAN.md`](docs/PLAN.md) — plan d'action proposé (jalons, architecture, livrables).
 
 ## Démarrer

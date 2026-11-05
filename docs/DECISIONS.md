@@ -21,6 +21,20 @@ Décisions appliquées dans le moteur :
 - Case privée sans réponse (personne / 0 passage) : **flèche « rejouer »**.
 - 6 personnages × 6 étapes × 6 salles, identiques pour toutes les parties d'un plan.
 
+## Plans
+
+- Le plateau officiel (plan de l'Opéra) **n'est pas reproduit** dans le dépôt. Deux plans originaux sont fournis :
+  *Villa des Glycines* et *Musée de la Lanterne* (murs sans porte : toutes les salles voisines ne communiquent pas).
+- Les déplacements suivent uniquement les **portes** ; une porte n'est valide qu'entre deux salles qui partagent
+  un mur (pas de saut de salle) — vérifié par `validateMap`.
+- Tout autre plan peut être **importé en JSON** depuis l'interface (bouton « Télécharger ce plan » = modèle).
+
+## Thèmes
+
+- **Stylisé** : cartes crème, cadres et filets dorés, titres à empattements, caches sombres à motif.
+- **Minimaliste** : aucun aplat, cases partagées en pointillés, caches hachurés (papier ≥ 160 g conseillé).
+- Le thème ne change que l'habillage : cartes et caches de thèmes différents restent compatibles.
+
 ## Supports : commun vs par partie (économie d'impression)
 
 | Support | Imprimé | Format |

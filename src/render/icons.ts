@@ -1,7 +1,7 @@
 import { n } from './svg';
 
 /** Flèche « rejouer » (case privée vide : personne / jamais passé). */
-export function replayIcon(cx: number, cy: number, r: number, color = '#111'): string {
+export function replayIcon(cx: number, cy: number, r: number, color = 'currentColor'): string {
   const sw = r * 0.28;
   // Arc de cercle ouvert en haut à droite + pointe de flèche.
   const a0 = -60 * (Math.PI / 180);
@@ -17,6 +17,6 @@ export function replayIcon(cx: number, cy: number, r: number, color = '#111'): s
 }
 
 /** Repère d'alignement : triangle plein dans le coin haut-gauche (carte ET cache). */
-export function cornerMarker(x: number, y: number, size: number, color = '#111'): string {
+export function cornerMarker(x: number, y: number, size: number, color = 'currentColor'): string {
   return `<path d="M ${n(x)} ${n(y)} h ${n(size)} L ${n(x)} ${n(y + size)} Z" fill="${color}"/>`;
 }
