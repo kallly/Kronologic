@@ -39,6 +39,11 @@ Décisions appliquées dans le moteur :
   trajet complet. *Reste à faire (solveur) : vérifier que la réponse est déductible à partir des seules cartes.*
 - **Solution** : quadrillage salles × étapes avec les lettres des personnages présents ; la case du meurtre est colorée.
 
+## Logos de salles
+
+Chaque salle reçoit un logo géométrique (cercle, carré, triangle, losange, étoile, hexagone…, selon son rang
+dans le plan), affiché à côté de son nom sur tous les plans et au-dessus des cases de comptage.
+
 ## Thèmes
 
 - **Stylisé** : cartes crème, cadres et filets dorés, titres à empattements, caches sombres à motif.
@@ -51,7 +56,7 @@ Décisions appliquées dans le moteur :
 |---|---|---|
 | Plan | 1 fois par plan | A4 |
 | Caches (6 étapes + 6 personnages) | 1 fois par plan | 60 × 85 mm, 9 par A4, traits de coupe, fenêtres à évider |
-| Feuilles de notes | 1 bloc par plan (× nb de joueurs) | A4 **paysage** : étapes 1-3 à gauche, 4-6 à droite, tableau personnages × salles au centre |
+| Feuilles de notes | 1 bloc par plan (× nb de joueurs) | A4 **paysage** : 6 grands plans vierges (1 par étape, positions notées au crayon) + en bas une ligne de comptage (par personnage, une case par salle repérée par son logo) |
 | Cartes de salle | **par partie** (6 cartes) | 60 × 85 mm pliée (recto contenu / verso nom + plan), 3 par A4, traits de coupe |
 | Mise en place + solution | **par partie** | A4 coupée en 2 : positions à l'étape 1 (publique) / trajets (secret) |
 

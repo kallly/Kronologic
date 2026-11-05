@@ -1,7 +1,7 @@
 import type { Murder } from '../core/scenario';
 import type { Character, GameMap, RoomStory, Story } from '../core/types';
 import { cutMarks, gridPlacement } from './cutMarks';
-import { cornerMarker, replayIcon } from './icons';
+import { cornerMarker, replayIcon, roomGlyph } from './icons';
 import { CARD_H, CARD_W, MASK_LABEL, cardLayout, columnWindow, titleWindow, type Box } from './layout';
 import { drawMap, type MapDrawOptions } from './mapSvg';
 import { PAGE_H, PAGE_W, chunk, esc, n, rect, sheet, text } from './svg';
@@ -203,68 +203,48 @@ export function noteSheets(m: Material, perSheet = 6): string[] {
   const W = PAGE_H; // paysage : 277 × 190 mm
   const H = PAGE_W;
   const stepGroups = chunk(Array.from({ length: m.steps }, (_, i) => i), perSheet);
-  const headFill = t.id === 'minimal' ? 'none' : t.decorated ? t.highlightFill : '#eee';
   const aspect = m.map.width / m.map.height;
-  const top = 11;
-  const gap = 4;
-  // Trois plans empilés à gauche (étapes 1-3), trois à droite (4-6), tableau au centre.
-  const slotH = (H - top - 4 - 2 * gap) / 3;
-  const mapH = slotH - 5;
-  const mapW = Math.min(mapH * aspect, 80);
-  const tableX = 5 + mapW + 8;
-  const tableW = W - 2 * tableX;
+
+  // Ligne de comptage en bas : pour chaque personnage, une case par salle (repérée par son logo).
+  const stripH = 13;
+  const stripTop = H - 3 - stripH;
+  // Plans des étapes : l'essentiel de la page, 3 colonnes × 2 rangées.
+  const top = 9;
+  const gapX = 6;
+  const gapY = 4;
+  const slotW = (W - 10 - 2 * gapX) / 3;
+  const slotH = (stripTop - 4 - top - gapY) / 2;
+  const mapW = Math.min(slotW, (slotH - 5) * aspect);
+  const mapH = mapW / aspect;
 
   return stepGroups.map((group, sheetIndex) => {
     const p: string[] = [];
-    p.push(title(t, 5, 5.5, `Feuille d'enquête — ${m.map.name}`, 4.5, 'start'));
-    p.push(text(W - 5, 5.5, 'Joueur : ____________   Partie n° ______', { size: 3.2, anchor: 'end' }));
+    p.push(title(t, 5, 4.5, `Feuille d'enquête — ${m.map.name}`, 4.5, 'start'));
+    p.push(text(W - 5, 4.5, 'Joueur : ____________   Partie n° ______', { size: 3.2, anchor: 'end' }));
 
-    const drawStep = (step: number, x: number, y: number) => {
-      p.push(title(t, x, y + 2, `Étape ${step + 1}`, 3.4, 'start'));
-      p.push(drawMap(m.map, x, y + 4.5, mapW, mapOpts(t, {
-        labelSize: 2.4,
-        stroke: 0.35,
-        roomExtra: (box) => {
-          // Lettres à cocher, réparties dans la salle sous son nom (s'adapte aux salles asymétriques).
-          const top = box.y + 5;
-          const area = { x: box.x + 1.5, y: top, w: box.w - 3, h: box.y + box.h - top - 1.5 };
-          const cols = area.w >= area.h * 1.6 ? 6 : area.w >= area.h * 0.6 ? 3 : 2;
-          const rows = Math.ceil(m.characters.length / cols);
-          const size = Math.max(1.8, Math.min(2.8, (area.h / rows) * 0.75, (area.w / cols) * 0.75));
-          return m.characters
-            .map((c, i) => {
-              const cx = area.x + area.w * ((i % cols) + 0.5) / cols;
-              const cy = area.y + area.h * (Math.floor(i / cols) + 0.5) / rows;
-              return text(cx, cy, c.symbol, { size, fill: '#b5b5b5', weight: 'bold' });
-            })
-            .join('');
-        },
-      })).svg);
-    };
-    group.forEach((s, i) => {
-      const left = i < 3;
-      drawStep(s, left ? 5 : W - 5 - mapW, top + (i % 3) * (slotH + gap));
+    group.forEach((step, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const x = 5 + col * (slotW + gapX) + (slotW - mapW) / 2;
+      const y = top + row * (slotH + gapY) + (slotH - 5 - mapH) / 2;
+      p.push(title(t, x, y + 2, `Étape ${step + 1}`, 3.6, 'start'));
+      p.push(drawMap(m.map, x, y + 5, mapW, mapOpts(t, { labelSize: 2.8, stroke: 0.4 })).svg);
     });
 
-    // Tableau central : personnages × salles (nombre de passages). Noms de salles à la verticale.
-    const nameW = 30;
-    const cw = (tableW - nameW) / m.map.rooms.length;
-    const longest = Math.max(...m.map.rooms.map((r) => r.name.length));
-    const headSize = 3.2;
-    const hh = Math.max(14, longest * headSize * 0.6 + 4);
-    const rh = Math.min(16, (H - top - 16 - hh) / m.characters.length);
-    const tableTop = top + (H - top - 4 - hh - rh * m.characters.length) / 2 + 3;
-    p.push(title(t, tableX + tableW / 2, tableTop - 4, 'Nombre de passages par salle', 3.4));
-    m.map.rooms.forEach((r, j) => {
-      const cx = tableX + nameW + j * cw + cw / 2;
-      p.push(rect(tableX + nameW + j * cw, tableTop, cw, hh, `fill="${headFill}" ${line}`));
-      p.push(`<g transform="translate(${n(cx)} ${n(tableTop + hh - 2)}) rotate(-90)">${text(0, 0, r.name, { size: headSize, anchor: 'start', weight: 'bold' })}</g>`);
-    });
+    // Ligne de comptage des passages.
+    p.push(text(5, stripTop + 1.2, 'Passages par salle :', { size: 2.6, anchor: 'start', fill: t.muted }));
+    const groupW = (W - 10) / m.characters.length;
+    const cells = m.map.rooms.length;
+    const cellW = Math.min(6.5, (groupW - 9) / cells);
     m.characters.forEach((c, i) => {
-      const y = tableTop + hh + rh * i;
-      p.push(rect(tableX, y, nameW, rh, `fill="none" ${line}`));
-      p.push(characterBadge(t, c, tableX + 4.5, y + rh / 2, 2.6) + text(tableX + 9, y + rh / 2, c.name, { size: 3, anchor: 'start' }));
-      m.map.rooms.forEach((_, j) => p.push(rect(tableX + nameW + j * cw, y, cw, rh, `fill="none" ${line}`)));
+      const gx = 5 + i * groupW;
+      const cy = stripTop + 8;
+      p.push(characterBadge(t, c, gx + 3, cy, 2.6));
+      m.map.rooms.forEach((_, j) => {
+        const x = gx + 7 + j * cellW;
+        p.push(roomGlyph(j, x + cellW / 2, cy - 4.3, 2.4, t.muted));
+        p.push(rect(x, cy - 2.6, cellW, 5.6, `fill="none" ${line}`));
+      });
     });
 
     const suffix = stepGroups.length > 1 ? ` · feuille ${sheetIndex + 1}/${stepGroups.length}` : '';

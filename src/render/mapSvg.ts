@@ -1,4 +1,5 @@
 import type { GameMap, RoomId } from '../core/types';
+import { roomGlyph } from './icons';
 import { esc, n, text } from './svg';
 
 export interface MapDrawOptions {
@@ -22,14 +23,22 @@ export function drawMap(map: GameMap, x: number, y: number, width: number, opts:
   const byId = new Map(map.rooms.map((r) => [r.id, r]));
   const parts: string[] = [];
 
-  for (const r of map.rooms) {
+  map.rooms.forEach((r, index) => {
     const box = { id: r.id, x: x + r.x * k, y: y + r.y * k, w: r.w * k, h: r.h * k };
     parts.push(
       `<rect x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}" fill="${r.id === highlight ? highlightFill : roomFill}" stroke="currentColor" stroke-width="${stroke}"/>`,
     );
-    if (labels) parts.push(text(box.x + box.w / 2, box.y + labelSize * 1.25, r.name, { size: labelSize }));
+    if (labels) {
+      // Logo de la salle à gauche du nom (largeur du nom estimée à 0,55 × taille par caractère).
+      const y = box.y + labelSize * 1.25;
+      const nameW = r.name.length * labelSize * 0.55;
+      const g = labelSize * 0.95;
+      const x0 = box.x + box.w / 2 - (nameW + g + labelSize * 0.4) / 2;
+      parts.push(roomGlyph(index, x0 + g / 2, y, g));
+      parts.push(text(x0 + g + labelSize * 0.4, y, r.name, { size: labelSize, anchor: 'start' }));
+    }
     if (roomExtra) parts.push(roomExtra(box));
-  }
+  });
   // Passage (porte) : petit bloc à cheval sur le mur commun. Un mur sans porte ne se traverse pas.
   for (const [a, b] of map.doors) {
     const ra = byId.get(a)!;
