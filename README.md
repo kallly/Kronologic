@@ -9,13 +9,14 @@ puis le met en page pour une impression sur feuilles **A4**.
 | Document | Contenu |
 |---|---|
 | **Plan** | Le plateau seul (lieux + connexions). Une première carte, d'autres ensuite. |
-| **Cartes de salle** | Une par salle : nb de présents par étape (public) ; par personnage, nb de passages + une étape exacte (privé). |
+| **Cartes de salle** | Une par salle : par étape, nb de présents (partagé) + un personnage présent (privé) ; par personnage, nb de passages (partagé) + une étape (privé). |
 | **Solution** | Déplacements complets de chaque personnage + réponse à l'énigme. |
 | **Feuilles de notes** | 6 mini-plans (1 par étape) + liste des personnages × salles ; feuille supplémentaire au-delà de 6 étapes. |
 | **Caches** | À découper : 1 cache par personnage, 1 cache par étape, posés sur une carte de salle. |
 
 ## Documentation
 
+- [`docs/REGLES_KRONOLOGIC.md`](docs/REGLES_KRONOLOGIC.md) — règles du jeu original, vérifiées et sourcées.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) — choix arrêtés et points ouverts.
 - [`docs/PLAN.md`](docs/PLAN.md) — plan d'action proposé (jalons, architecture, livrables).
 

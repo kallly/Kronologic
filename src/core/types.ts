@@ -35,10 +35,11 @@ export interface StoryConfig {
   /** Nombre d'étapes (pas de temps). 6 par défaut. */
   steps: number;
   characters: Character[];
-  /** Un personnage peut-il rester dans la même salle d'une étape à l'autre ? */
-  allowStay: boolean;
-  /** Salle de départ commune à tous (étape 1). Absent ⇒ départ aléatoire. */
-  startRoom?: RoomId;
+  /**
+   * Position de chaque personnage à l'étape 1, fixée par l'histoire / le n° de partie.
+   * Absent ⇒ tirée à partir de la graine (et imprimée avec la partie).
+   */
+  startPositions?: Record<CharacterId, RoomId>;
 }
 
 /** Une partie générée : le trajet complet de chaque personnage. */
@@ -49,19 +50,27 @@ export interface Story {
   paths: Record<CharacterId, RoomId[]>;
 }
 
-/** Infos privées d'un personnage sur la carte d'une salle. */
+/** Ce que révèle le cache d'une étape posé sur la carte de salle. */
+export interface StepRoomInfo {
+  /** Partagé : nombre de personnages présents à cette étape. */
+  count: number;
+  /** Privé : un personnage présent, ou null si personne. */
+  revealedCharacter: CharacterId | null;
+}
+
+/** Ce que révèle le cache d'un personnage posé sur la carte de salle. */
 export interface CharacterRoomInfo {
-  /** Nombre d'étapes passées dans la salle. */
+  /** Partagé : nombre de passages dans la salle, toutes étapes confondues. */
   visits: number;
-  /** Une étape exacte (0-based) où il y était, ou null s'il n'y est jamais allé. */
+  /** Privé : une étape exacte (0-based) où il y était, ou null s'il n'y est jamais allé. */
   revealedStep: number | null;
 }
 
-/** « Histoire d'une pièce » : tout ce qu'imprime la carte de salle. */
+/** « Histoire d'une pièce » : tout ce qu'imprime la carte de salle (cf. docs/REGLES_KRONOLOGIC.md §5). */
 export interface RoomStory {
   roomId: RoomId;
-  /** Info publique : nombre de personnages présents à chaque étape. */
-  presenceByStep: number[];
-  /** Infos privées par personnage. */
+  /** Une entrée par étape. */
+  steps: StepRoomInfo[];
+  /** Une entrée par personnage. */
   characters: Record<CharacterId, CharacterRoomInfo>;
 }

@@ -20,7 +20,6 @@ function render(): void {
     seed: state.seed,
     steps: state.steps,
     characters: defaultCharacters,
-    allowStay: false,
   });
   const rooms = buildRoomStories(story);
   const footer = `${map.name} · graine ${state.seed} · ${state.steps} étapes`;
@@ -54,7 +53,8 @@ function render(): void {
         <h3>${map.rooms.find((r) => r.id === rs.roomId)!.name}</h3>
         <table>
           <tr><th>Étape</th>${stepHeaders}</tr>
-          <tr><th>Présents</th>${rs.presenceByStep.map((n) => `<td>${n}</td>`).join('')}</tr>
+          <tr><th>Présents</th>${rs.steps.map((s) => `<td>${s.count}</td>`).join('')}</tr>
+          <tr><th>Perso vu</th>${rs.steps.map((s) => `<td>${s.revealedCharacter ?? '–'}</td>`).join('')}</tr>
         </table>
         <table style="margin-top:1mm">
           <tr><th></th>${defaultCharacters.map((c) => `<th style="color:${c.color}">${c.symbol}</th>`).join('')}</tr>

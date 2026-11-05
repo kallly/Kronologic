@@ -10,7 +10,6 @@ const config = (seed: string, extra: Partial<StoryConfig> = {}): StoryConfig => 
   seed,
   steps: 6,
   characters: defaultCharacters,
-  allowStay: false,
   ...extra,
 });
 
@@ -49,27 +48,37 @@ describe('génération des histoires', () => {
     expect(generateStory(map, config('X1')).paths).toEqual(generateStory(map, config('X1')).paths);
   });
 
-  it.each([false, true])('respecte les déplacements (allowStay=%s)', (allowStay) => {
+  it('déplace vers une salle adjacente, jamais deux étapes de suite au même endroit', () => {
     for (let i = 0; i < 50; i++) {
-      const story = generateStory(map, config(`s${i}`, { allowStay }));
+      const story = generateStory(map, config(`s${i}`));
       for (const path of Object.values(story.paths)) {
         expect(path).toHaveLength(6);
-        expect(isValidPath(map, path, allowStay)).toBe(true);
-        if (!allowStay) path.slice(1).forEach((r, k) => expect(r).not.toBe(path[k]));
+        expect(isValidPath(map, path)).toBe(true);
+        path.slice(1).forEach((r, k) => expect(r).not.toBe(path[k]));
       }
     }
   });
 
-  it('applique la salle de départ commune', () => {
-    const story = generateStory(map, config('S', { startRoom: 'hall' }));
-    for (const path of Object.values(story.paths)) expect(path[0]).toBe('hall');
+  it('applique les positions de départ de la partie', () => {
+    const startPositions = Object.fromEntries(defaultCharacters.map((c, i) => [c.id, map.rooms[i % map.rooms.length]!.id]));
+    const story = generateStory(map, config('S', { startPositions }));
+    for (const c of defaultCharacters) expect(story.paths[c.id]![0]).toBe(startPositions[c.id]);
+  });
+
+  it('rejette une salle de départ inconnue', () => {
+    expect(() => generateStory(map, config('S', { startPositions: { A: 'nulle-part' } }))).toThrow();
   });
 
   it('produit des cartes de salle cohérentes', () => {
     const story = generateStory(map, config('CARDS', { steps: 9 }));
     const rooms = buildRoomStories(story);
     for (let step = 0; step < 9; step++) {
-      expect(rooms.reduce((s, r) => s + r.presenceByStep[step]!, 0)).toBe(defaultCharacters.length);
+      expect(rooms.reduce((s, r) => s + r.steps[step]!.count, 0)).toBe(defaultCharacters.length);
+      for (const r of rooms) {
+        const { count, revealedCharacter } = r.steps[step]!;
+        if (count === 0) expect(revealedCharacter).toBeNull();
+        else expect(story.paths[revealedCharacter!]![step]).toBe(r.roomId);
+      }
     }
     for (const c of defaultCharacters) {
       expect(rooms.reduce((s, r) => s + r.characters[c.id]!.visits, 0)).toBe(9);

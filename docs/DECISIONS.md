@@ -10,24 +10,17 @@
 | Étapes | 6 par défaut, paramétrable. |
 | Architecture | 2 parties : **génération des histoires** (moteur) et **génération des supports** (rendu A4). |
 
-## Mécaniques reproduites
+## Règles
 
-- Un plan = des salles reliées par des passages.
-- Chaque personnage a un trajet sur N étapes ; entre deux étapes il passe dans une salle adjacente.
-- **Carte de salle** (une par salle), quadrillée :
-  - info **publique** : pour chaque étape, nombre de personnages présents ;
-  - info **privée** : pour chaque personnage, nombre de passages dans la salle + **une** étape exacte où il y était.
-- **Caches** (gabarits à fenêtre posés sur une carte de salle) :
-  - **cache personnage** (1 par personnage) : révèle son nombre de passages + l'étape exacte ;
-  - **cache étape** (1 par étape) : révèle le nombre de personnages présents à cette étape.
-- **Feuille de notes** : 6 mini-plans (1 par étape) + au centre la liste des personnages avec, pour chaque
-  salle, une case « nombre de passages ». Au-delà de 6 étapes, feuille supplémentaire.
-- **Solution** : trajet de chaque personnage + réponse à l'énigme.
+La référence est [`REGLES_KRONOLOGIC.md`](REGLES_KRONOLOGIC.md) (règles vérifiées et sourcées).
+Décisions appliquées dans le moteur :
 
-## Points encore ouverts (à valider au fil de l'eau)
+- Déplacement obligatoire vers une salle adjacente, **jamais deux étapes de suite dans la même salle**.
+- **Positions de départ fixées par l'histoire / le n° de partie** (`startPositions`) ; sinon tirées depuis la graine.
+- Carte de salle : par étape, nb de présents + un personnage présent ; par personnage, nb de passages + une étape.
 
-1. Déplacement : rester sur place autorisé ? → paramètre `allowStay` (défaut : non).
-2. Départ : salle commune connue de tous ou aléatoire ? → paramètre `startRoom` (défaut : aléatoire).
-3. Étape exacte révélée quand le personnage est passé plusieurs fois : tirage aléatoire (actuel), première, dernière ?
-4. Énigme / scénario à résoudre (qui, où, quand, conditions) et niveaux de difficulté → J4.
-5. Taille des cartes de salle et nombre par A4 (proposition : 90 × 125 mm, 4 par page).
+## Points encore ouverts
+
+Voir la liste « À vérifier dans la boîte » (§12 de `REGLES_KRONOLOGIC.md`), plus :
+- taille des cartes de salle et nombre par A4 (proposition : 90 × 125 mm, 4 par page) ;
+- format des énigmes générées (J4), à partir des 3 types d'objectifs documentés (§8).
